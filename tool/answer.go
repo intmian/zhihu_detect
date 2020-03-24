@@ -10,8 +10,6 @@ import (
 	"strconv"
 )
 
-
-
 var headers map[string]string = map[string]string{ // 带个请求头
 	"authority":                 "www.zhihu.com",
 	"method":                    "GET",
@@ -37,8 +35,9 @@ func (a *answer) VoteNum() int {
 	respond, _ := a.req.Get(url)
 	j := map[string]interface{}{}
 	_ = respond.Json(&j)
-	r, _ := strconv.Atoi(j["paging"].(map[string]string)["totals"])
-	return r
+	r, _ := j["paging"].(map[string]interface{})["totals"].(float64)
+	re := int(r)
+	return re
 }
 
 func (a *answer) VotePageNum() int {
@@ -72,8 +71,13 @@ func (a *answer) GetAll() []interface{} {
 func NewAnswer(code string) *answer {
 	a := answer{
 		code: code,
-		req:  HttpRequest.Request{},
+		req:  *HttpRequest.NewRequest(),
 	}
 	a.req.SetHeaders(headers)
 	return &a
+}
+
+//getUserData 返回一个用户的被关注数、回答数、文章数
+func getUserData(user map[string]interface{}) (int, int, int) {
+	return int(user["follower_count"].(float64)), int(user["answer_count"].(float64)), int(user["articles_count"].(float64))
 }
